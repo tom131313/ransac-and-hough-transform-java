@@ -1,3 +1,5 @@
+package app;
+
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -12,9 +14,9 @@ import javax.swing.JFrame;
 public class RANSAC {
     private ArrayList<Point> data = new ArrayList<Point>();
     private ArrayList<Boolean> correctSet = new ArrayList<Boolean>();
-    private final int maxIter        = 100000;
-    private final int threshold      = 10;
-    private final int sufficientSize = (int) Double.POSITIVE_INFINITY;
+    private final int maxIter        = 200000;
+    private final int threshold      = 8;
+    private final int sufficientSize = 25; // Integer.MAX_VALUE; //(int) Double.POSITIVE_INFINITY;
     private final int width = 1000;
     private final int height = 1000;
     private final int pointSize = 4;
@@ -45,20 +47,21 @@ public class RANSAC {
         @args[0] Path to file containing points      
     */
     public static void main(String[] args) throws IllegalArgumentException { 
-        if(args.length == 0){
-            throw new IllegalArgumentException();
-        }
-        
-        new RANSAC(args[0]).showCanvas();
+        // if(args.length == 0){
+        //     throw new IllegalArgumentException();
+        // }
+        String arg0 = "points.ht.data";
+        new RANSAC(arg0).showCanvas();
+        //new RANSAC(args[0]).showCanvas();
     }
     
     /**
      * Displays the data points and the calculated circles on a canvas
      */
     public void showCanvas(){
-        final RANSACResult r = this.execute();
-        final Circle circle = r.getCircle();
-        final ArrayList<Point> consensusSet = r.getConsensusSet();
+        final ArrayList<RANSACResult> r = this.execute();
+  //      final Circle circle; // = r.getCircle();
+  //      final ArrayList<Point> consensusSet; // = r.getConsensusSet();
         JFrame frame = new JFrame();
         final int width = this.width;
         final int height = this.height;
@@ -68,6 +71,9 @@ public class RANSAC {
         final ArrayList<Point> data = this.data;
 
         frame.add(new Canvas(){
+
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void paint(Graphics g){
                 double offsetWidth = this.getWidth() / 2.0;
@@ -82,61 +88,67 @@ public class RANSAC {
                     );
                 }
                 
-                // g.setColor(Color.RED);
-                // g.drawOval(
-                //     (int) (circle.getX() - circle.getRadius() + 0.5),
-                //     (int) (circle.getY() - circle.getRadius() + 0.5),
-                //     (int) (2 * circle.getRadius()), 
-                //     (int) (2 * circle.getRadius())
-                // );
+                for (RANSACResult oneR : r) {
+                final Circle circle = oneR.getCircle();
+                final ArrayList<Point> consensusSet = oneR.getConsensusSet();
 
-                // g.setColor(Color.GREEN);
-                // for(Point point : consensusSet) {
-                //     g.fillOval(
-                //         (int) (point.getX() + pointSize / 2.0 + 0.5),
-                //         (int) (point.getY() + pointSize / 2.0 + 0.5), 
-                //         pointSize, 
-                //         pointSize
-                //     );
-                // }
+                g.setColor(Color.RED);
+                g.drawOval(
+                    (int) (circle.getX() - circle.getRadius() + 0.5),
+                    (int) (circle.getY() - circle.getRadius() + 0.5),
+                    (int) (2 * circle.getRadius()), 
+                    (int) (2 * circle.getRadius())
+                );
 
 
-                // double highestRadius = -1;
-                // double smallestRadius = Double.POSITIVE_INFINITY;
-                // for(Point point : r.getConsensusSet()){
-                //     double distance = Math.sqrt(
-                //         Math.pow(point.getX() - circle.getX(), 2) + 
-                //         Math.pow(point.getY() - circle.getY(), 2)
-                //     );
+                g.setColor(Color.GREEN);
+                for(Point point : consensusSet) {
+                    g.fillOval(
+                        (int) (point.getX() + pointSize / 2.0 + 0.5),
+                        (int) (point.getY() + pointSize / 2.0 + 0.5), 
+                        pointSize, 
+                        pointSize
+                    );
+                }
 
-                //     if(distance > highestRadius) {
-                //         highestRadius = distance;
-                //     }
 
-                //     if(distance < smallestRadius) {
-                //         smallestRadius = distance;
-                //     }
-                // }
+                double highestRadius = -1;
+                double smallestRadius = Double.POSITIVE_INFINITY;
+                for(Point point : consensusSet){
+                    double distance = Math.sqrt(
+                        Math.pow(point.getX() - circle.getX(), 2) + 
+                        Math.pow(point.getY() - circle.getY(), 2)
+                    );
 
-                // g.setColor(Color.BLUE);
-                // g.drawOval(
-                //     (int) (circle.getX() - highestRadius + 0.5),
-                //     (int) (circle.getY() - highestRadius + 0.5),
-                //     (int) (2 * highestRadius), 
-                //     (int) (2 * highestRadius)
-                // );
+                    if(distance > highestRadius) {
+                        highestRadius = distance;
+                    }
 
-                // g.setColor(Color.ORANGE);
-                // g.drawOval(
-                //     (int) (circle.getX() - smallestRadius + 0.5),
-                //     (int) (circle.getY() - smallestRadius + 0.5),
-                //     (int) (2 * smallestRadius), 
-                //     (int) (2 * smallestRadius)
-                // );
+                    if(distance < smallestRadius) {
+                        smallestRadius = distance;
+                    }
+                }
 
-                // System.out.println("smallestRadius=" + smallestRadius);
-                // System.out.println("highestRadius=" + highestRadius);
-            }
+                g.setColor(Color.BLUE);
+                g.drawOval(
+                    (int) (circle.getX() - highestRadius + 0.5),
+                    (int) (circle.getY() - highestRadius + 0.5),
+                    (int) (2 * highestRadius), 
+                    (int) (2 * highestRadius)
+                );
+
+                g.setColor(Color.ORANGE);
+                g.drawOval(
+                    (int) (circle.getX() - smallestRadius + 0.5),
+                    (int) (circle.getY() - smallestRadius + 0.5),
+                    (int) (2 * smallestRadius), 
+                    (int) (2 * smallestRadius)
+                );
+
+                System.out.println("smallestRadius=" + smallestRadius);
+                System.out.println("highestRadius=" + highestRadius);
+        }
+        }
 
         });
         frame.setSize(width, height);
@@ -148,10 +160,13 @@ public class RANSAC {
      * @return a RANSACResult, which contains the circle and its corresponding consensus set
      * @throws IllegalArgumentException
      */
-    public RANSACResult execute() throws IllegalArgumentException {
-        if(this.data.size() == 0){
-            throw new IllegalArgumentException("File containing points is empty");
-        }
+    public ArrayList<RANSACResult> execute() throws IllegalArgumentException {
+        ArrayList<RANSACResult> allFinds = new ArrayList<RANSACResult>();
+
+        while ( this.data.size() > 0  && allFinds.size() < 15 ) {
+        // if(this.data.size() == 0){
+        //     throw new IllegalArgumentException("File containing points is empty");
+        // }
 
         ArrayList<Integer> maybeInliers   = new ArrayList<Integer>();
         ArrayList<Point> bestConsensusSet = new ArrayList<Point>();;
@@ -182,7 +197,7 @@ public class RANSAC {
                     // consensus_set := maybe_inliers
                     consensusSet.add(point);
                     
-                    if(consensusSet.size() > this.sufficientSize) { break; }
+                    //if(consensusSet.size() > this.sufficientSize) { break; }
                 }
             }
             //Keep track of the best model so far
@@ -191,10 +206,35 @@ public class RANSAC {
                 bestCircle = maybeCircle;
             }
 
-            if(consensusSet.size() > this.sufficientSize) { break; }
+            // if(consensusSet.size() > Math.max(this.sufficientSize, maybeCircle.getRadius()/3.)) {
+            //     System.out.println("found sufficient "  + consensusSet.size() + " " + this.sufficientSize);
+            //     allFinds.add(new RANSACResult(consensusSet, maybeCircle));
+            //     // this.data.add(new Point(x, y));
+            //     // loop all points in consensusSet and remove them for data
+            //     for (int j = 0; j < consensusSet.size(); j++) {
+            //         this.data.remove(consensusSet.get(j));
+            //     }
+            //     // break;
+            // }
+
+            // if(consensusSet.size() > this.sufficientSize) { break; }
+
         }
-                
-        return new RANSACResult(bestConsensusSet, bestCircle);
+
+        System.out.println(bestConsensusSet.size() + " " + bestCircle.getRadius());
+        // found the best; if it's not good enough then quit
+        if(bestConsensusSet.size() < Math.max(this.sufficientSize, bestCircle.getRadius()/4.)) { break;}
+         
+        // loop all points in consensusSet and remove them for data
+        for (int j = 0; j < consensusSet.size(); j++) {
+            this.data.remove(bestConsensusSet.get(j));
+        }
+
+        // return new RANSACResult(bestConsensusSet, bestCircle);
+        allFinds.add(new RANSACResult(bestConsensusSet, bestCircle));
+        }
+//allFinds.clear();
+        return allFinds;
     }
     
     // Calculate the distance between a point and the center of a circle
@@ -272,7 +312,7 @@ public class RANSAC {
       }
     }
 
-    private class Circle {
+    public class Circle {
         private double x;
         private double y;
         private double radius;

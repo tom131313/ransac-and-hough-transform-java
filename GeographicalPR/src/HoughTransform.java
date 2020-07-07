@@ -1,12 +1,12 @@
+package app;
+
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.util.*;
-import java.awt.Point;
 import javax.swing.JFrame;
 import java.io.*;
-import java.awt.Point;
 import java.lang.IllegalArgumentException;
 
 public class HoughTransform {
@@ -15,16 +15,16 @@ public class HoughTransform {
     private final int maxRadius         = 130;
     
     /* Max and minimal center x coordinates for the given circles */
-    private final int minXCoord          = -200;
-    private final int maxXCoord          = 200;
+    private final int minXCoord          = -250;
+    private final int maxXCoord          = 250;
       
     /* Max and minimal center y coordinates for the given circles */
-    private final int minYCoord          = -200;
-    private final int maxYCoord          = 200;
+    private final int minYCoord          = -250;
+    private final int maxYCoord          = 250;
     
     /* The size of a cell according to the Hough Transform algorithm */
-    private final int radiusSize        = 6;
-    private final int cellSize          = 6;
+    private final int radiusSize        = 8;
+    private final int cellSize          = 8;
 
     /* How close could two circles lie be without being the same circle? */
     private final int minCircleDistance = 20;
@@ -45,11 +45,12 @@ public class HoughTransform {
         @args[0] File containing data points
     */
     public static void main(String[] args) throws IllegalArgumentException { 
-        if(args.length == 0){
-            throw new IllegalArgumentException();
-        }
-        
-        HoughTransform h = new HoughTransform(args[0]);
+        // if(args.length == 0){
+        //     throw new IllegalArgumentException();
+        // }
+        String arg0 = "points.ht.data";
+        HoughTransform h = new HoughTransform(arg0);
+//        HoughTransform h = new HoughTransform(args[0]);
         h.execute();
         h.showCanvas();
     }
@@ -173,12 +174,17 @@ public class HoughTransform {
         }
 
         frame.add(new Canvas(){
+            /**
+             *
+             */
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void paint(Graphics g){
                 double offsetWidth = this.getWidth() / 2.0;
                 double offsetHeight = this.getHeight() / 2.0;
                 g.translate((int) Math.round(offsetWidth), (int) Math.round(offsetHeight));
-                for(Point point : data){
+                for(Point point : data){ // all the points drawn in black
                     g.drawOval(
                         (int) (point.getX() + pointSize / 2.0 + 0.5),
                         (int) (point.getY() + pointSize / 2.0 + 0.5), 
@@ -214,6 +220,8 @@ public class HoughTransform {
                         }
                     }
 
+                    System.out.println(smallestRadius + " " + highestRadius);
+                    
                     g.setColor(Color.GREEN);
                     g.drawOval(
                         (int) (circle.getX() - highestRadius + 0.5),
@@ -222,8 +230,6 @@ public class HoughTransform {
                         (int) (2 * highestRadius)
                     );
 
-                    System.out.println(highestRadius);
-                    System.out.println(highestRadius);
                     g.setColor(Color.BLUE);
                     g.drawOval(
                         (int) (circle.getX() - smallestRadius + 0.5),
