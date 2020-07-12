@@ -15,16 +15,16 @@ public class HoughTransform {
     private final int maxRadius         = 130;
     
     /* Max and minimal center x coordinates for the given circles */
-    private final int minXCoord          = -250;
-    private final int maxXCoord          = 250;
+    private final int minXCoord          = -200;
+    private final int maxXCoord          = 200;
       
     /* Max and minimal center y coordinates for the given circles */
-    private final int minYCoord          = -250;
-    private final int maxYCoord          = 250;
+    private final int minYCoord          = -200;
+    private final int maxYCoord          = 200;
     
     /* The size of a cell according to the Hough Transform algorithm */
-    private final int radiusSize        = 8;
-    private final int cellSize          = 8;
+    private final int radiusSize        = 6;
+    private final int cellSize          = 6;
 
     /* How close could two circles lie be without being the same circle? */
     private final int minCircleDistance = 20;
